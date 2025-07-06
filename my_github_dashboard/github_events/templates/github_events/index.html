@@ -1,0 +1,74 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>GitHub Dashboard</title> 
+    <style> 
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; } 
+        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); } 
+        h1 { text-align: center; color: #333; } 
+        ul { list-style: none; padding: 0; } 
+        li { background-color: #e9e9e9; margin-bottom: 10px; padding: 10px; border-radius: 5px; } 
+        .timestamp { float: right; color: #777; font-size: 0.9em; } 
+    </style> 
+    <script> 
+        // Client-side polling for updates (as per requirement) 
+        function fetchLatestEvents() { 
+            fetch('?format=json') // Assuming an API endpoint for JSON or render directly on refresh 
+                .then(response => response.json()) 
+                .then(data => { 
+                    const eventList = document.getElementById('event-list'); 
+                    eventList.innerHTML = ''; // Clear existing events 
+                    data.events.forEach(event => { // Assuming 'events' key in JSON response 
+                     const listItem = document.createElement('li'); 
+                        listItem.innerHTML = ` 
+                            ${event.display_text} 
+                            <span class="timestamp">${new Date(event.timestamp).toLocaleString()}</span> `; 
+                        eventList.prepend(listItem); // Add to top for latest 
+                    }); 
+                }) 
+                .catch(error => console.error('Error fetching events:', error)); 
+        } 
+ 
+        // Poll every 15 seconds 
+        // setInterval(fetchLatestEvents, 15000); // Uncomment for production 
+ 
+        // Initial load 
+        // document.addEventListener('DOMContentLoaded', fetchLatestEvents); 
+    </script> 
+</head> 
+<body> 
+    <div class="container"> 
+        <h1>Latest GitHub Events</h1> 
+        <ul id="event-list"> 
+            {% for event in page_obj %} 
+                <li> 
+                    {{ event.get_display_text }} 
+                    <span class="timestamp">{{ event.timestamp|date:"M d, Y H:i" }}</span> 
+                </li> 
+            {% empty %} 
+                <li>No events found.</li> 
+            {% endfor %} 
+        </ul> 
+ 
+        <div class="pagination"> 
+            <span class="step-links"> 
+                {% if page_obj.has_previous %} 
+                    <a href="?page=1">« first</a> 
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a> 
+                {% endif %} 
+ 
+                <span class="current"> 
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}. 
+                </span> 
+ 
+                {% if page_obj.has_next %} 
+                    <a href="?page={{ page_obj.next_page_number }}">next</a> 
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last »</a> 
+                {% endif %} 
+            </span> 
+        </div> 
+    </div> 
+</body> 
+</html> 
